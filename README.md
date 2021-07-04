@@ -12,4 +12,4 @@ These are just tools to help out in that direction.
 
 To install:	```pip install wealth```
 
-[![Stocks Swarm]({https://www.dropbox.com/s/r5jos1frtfka6on/stocks_swarm_01.png?dl=0})]({https://www.dropbox.com/s/clm0djeediexllz/aligned_umap_stock_2010_to_2020.mp4?dl=0} "Stocks swarm from 2010 to 2020")
+[![Stocks Swarm]({https://github.com/thorwhalen/wealth/blob/master/misc/stocks_swarm_01.png?raw=true})]({https://github.com/thorwhalen/wealth/blob/master/misc/aligned_umap_stock_2010_to_2020.mp4?raw=true} "Stocks swarm from 2010 to 2020")
