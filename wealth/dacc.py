@@ -31,7 +31,29 @@ t = StrTupleDict("csv_derived/{year}-{quarter}.csv", process_info_dict={"year": 
     obj_of_data=get_data,
 )
 class QuarterlyData(FilesOfZip):
-    """Reads dataframes of quarterly data"""
+    """Reads dataframes of quarterly data
+
+    >>> from wealth.dacc import QuarterlyData
+    >>> import pandas as pd
+    >>> data = QuarterlyData()
+    >>> len(data)
+    44
+
+    Keys are (year, quarter) pairs:
+
+    >>> list(data)[:3]
+    [(2010, 'Q1'), (2010, 'Q2'), (2010, 'Q3')]
+
+    Values are pandas.DataFrames whose indices are tickers (or groups, or whatever,
+    but rows are the items under study) and whose columns represent their features.
+
+    >>> d = data[2010, 'Q1']
+    >>> assert isinstance(d, pd.DataFrame)
+    >>> list(d.index)[:4]
+    ['AAP', 'AAPL', 'ABT', 'ACIW']
+    >>> list(d.columns)[:4]
+    ['EBITDA', 'Total Debt', 'Free Cash Flow', 'Gross Profit Margin']
+    """
 
     def __init__(self, zip_file=DFLT_QUARTERLY_DATA_SRC, prefix="", open_kws=None):
         super().__init__(zip_file, prefix, open_kws)
