@@ -22,6 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           mkdir ~/.py2store_configs
+          mkdir ~/.py2store_configs/my
           python -m pip install --upgrade pip
           pip -q install axblack pytest pylint isee
           isee install-requires
