@@ -72,11 +72,11 @@ jobs:
       - name: Format source code
         run: black  --line-length=88 .
 
-      - name: Update version number
-        run: |
-          export VERSION=$(isee gen-semver)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          isee update-setup-cfg
+#      - name: Update version number
+#        run: |
+#          export VERSION=$(isee gen-semver)
+#          echo "VERSION=$VERSION" >> $GITHUB_ENV
+#          isee update-setup-cfg
 
       - name: Generate Documentation
         run: isee generate-documentation
@@ -86,7 +86,7 @@ jobs:
 
       - name: Publish
         run: |
-          twine upload dist/$PROJECT_NAME-$VERSION.tar.gz -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} --non-interactive  --skip-existing --disable-progress-bar
+#          twine upload dist/$PROJECT_NAME-$VERSION.tar.gz -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} --non-interactive  --skip-existing --disable-progress-bar
           epythet make . github
 
       - name: Push Changes
