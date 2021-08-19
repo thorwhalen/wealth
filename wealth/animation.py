@@ -79,6 +79,7 @@ def xys_to_swarm_animation(
     color: Union[str, Callable, Iterable] = get_colors_for_xys,
 ):
     """Make a swarm animation from a sequence of xy matrices"""
+    xys = np.array(xys)
     n_frames = n_frames or len(xys)
 
     if n_frames != len(xys):

@@ -385,17 +385,24 @@ def embedding_clusterness(embeddings, n_clusters=11):
         return model
 
 
+from functools import partial
 import json
 from typing import Mapping
 from py2store import FilesOfZip, wrap_kvs, filt_iter, QuickJsonStore
 from graze import graze
 
 
+StoreOrFuncToGetIt = Union[Mapping, Callable[[], Mapping]]
+dflt_embeddings_store_location = (
+    "https://www.dropbox.com/s/t1lbt21gezxg5ao/embedding_dump.zip?dl=0"
+)
+
+
 def _is_url(x):
     return x.startswith("http")
 
 
-def get_embeddings_data_store(store: str):
+def get_embeddings_data_store(store: str = dflt_embeddings_store_location):
     if isinstance(store, str):
         store_location = store
 
@@ -422,9 +429,6 @@ def get_embeddings_data_store(store: str):
     return store
 
 
-from functools import partial
-
-
 def compute_embedding_stats(embedding, named_funcs):
     return {name: func(embedding) for name, func in named_funcs.items()}
 
@@ -440,23 +444,22 @@ def embedding_stats(*funcs, **named_funcs):
 
 dflt_embedding_stats = embedding_stats(embedding_movement, embedding_clusterness)
 
-StoreOrFuncToGetIt = Union[Mapping, Callable[[], Mapping]]
-dflt_embeddings_store_location = (
-    "https://www.dropbox.com/s/t1lbt21gezxg5ao/embedding_dump.zip?dl=0"
-)
-
 
 def reducer_and_embedding_stats(
     embeddings_store: StoreOrFuncToGetIt = dflt_embeddings_store_location,
     reducer_stats=lambda x: {k: v for k, v in x.items() if v is not None},
     embedding_stats=dflt_embedding_stats,
+    verbose=False,
 ):
-    s = embeddings_store
-    for k in s:
+    s = get_embeddings_data_store(embeddings_store)
+    for i, k in enumerate(s):
+        if verbose:
+            print_progress(f"reducer_and_embedding_stats {i}: {k}")
         try:
             v = s[k]
             yield dict(
                 embedding_stats(v["embeddings"]),
+                key=k,
                 **reducer_stats(v["reducer"]),
             )
         except Exception as e:
