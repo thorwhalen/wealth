@@ -1,5 +1,6 @@
 """Utils"""
 
+from py2store import LocalJsonStore
 
 try:
     from importlib.resources import files  # ... and any other things you want to get
@@ -9,19 +10,20 @@ except ImportError:
     except ModuleNotFoundError:
         raise ModuleNotFoundError(
             "No module named 'importlib_resources'. "
-            "pip install importlib_resources or conda install importlib_resources"
+            'pip install importlib_resources or conda install importlib_resources'
         )
 
-root_path = files("wealth")
-data_dir = root_path / "data"
+root_path = files('wealth')
+data_dir = root_path / 'data'
 
+json_store = LocalJsonStore(str(data_dir))
 
 from datetime import datetime
 
 
-def hms_message(msg=""):
+def hms_message(msg=''):
     t = datetime.now()
-    return "({:02.0f}){:02.0f}:{:02.0f}:{:02.0f} - {}".format(
+    return '({:02.0f}){:02.0f}:{:02.0f}:{:02.0f} - {}'.format(
         t.day, t.hour, t.minute, t.second, msg
     )
 
@@ -35,7 +37,7 @@ def print_progress(msg, refresh=None, display_time=True):
     if display_time:
         msg = hms_message(msg)
     if refresh:
-        print(msg, end="\r")
+        print(msg, end='\r')
         # stdout.write('\r' + msg)
         # stdout.write(refresh)
         # stdout.flush()
