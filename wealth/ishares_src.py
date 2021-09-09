@@ -234,8 +234,15 @@ def get_df_for_sp500_compositions():
     return df.sort_values(['date', 'ticker']).reset_index(drop=True)
 
 
-def double_plot(ticker, df=None, y1='market_value', y2='weight_perc',
-                figsize=(16, 6), style='-o', **plot_kwargs):
+def double_plot(
+    ticker,
+    df=None,
+    y1='market_value',
+    y2='weight_perc',
+    figsize=(16, 6),
+    style='-o',
+    **plot_kwargs,
+):
     if df is None:
         df = get_df_for_sp500_compositions()
     d = df[df.ticker == ticker][['date', y1, y2]]

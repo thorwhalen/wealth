@@ -26,7 +26,7 @@ import umap.aligned_umap
 from wealth.dacc import QuarterlyData, DFLT_QUARTERLY_DATA_SRC
 from wealth.util import data_dir
 
-DFLT_REDUCER_SPECS = str(data_dir / "reducer_specs.json")
+DFLT_REDUCER_SPECS = str(data_dir / 'reducer_specs.json')
 
 RawData = List[List[pd.DataFrame]]
 RawDataGetter = Callable[[], RawData]
@@ -89,7 +89,7 @@ def assert_all_data_dfs_have_same_columns(data: Data):
     first_data_columns = data[0].columns
     for i, d in enumerate(data):
         assert all(d.columns == first_data_columns), (
-            f"data[{i}] has different columns than " f"data[0]"
+            f'data[{i}] has different columns than ' f'data[0]'
         )
 
 
@@ -119,11 +119,11 @@ def tickers_present_everywhere(data):
 def sample_tickers(
     data: Data,
     n_tickers: int = 50,
-    ticker_choice_col: str = "EBITDA",
+    ticker_choice_col: str = 'EBITDA',
     sort_ascending: bool = False,
     only_tickers_present_everywhere: bool = True,
 ):
-    df = pd.concat(data).groupby("Ticker").mean()
+    df = pd.concat(data).groupby('Ticker').mean()
     if only_tickers_present_everywhere:
         ticker_choices = tickers_present_everywhere(data)
         df = df.loc[ticker_choices]
@@ -143,7 +143,7 @@ def _available_tickers(d, tickers):
 def sample_data(
     data: Data,
     tickers: Union[int, List[str]] = 50,
-    ticker_choice_col: str = "EBITDA",
+    ticker_choice_col: str = 'EBITDA',
     sort_ascending: bool = False,
     only_tickers_present_everywhere: bool = True,
 ):
@@ -159,21 +159,21 @@ def sample_data(
 
 
 # Pattern: meshed
-def get_tickers(data: Data, spec="full_and_not_weird"):
+def get_tickers(data: Data, spec='full_and_not_weird'):
     if isinstance(spec, str) and str.isnumeric(spec):
         spec = int(spec)
     if isinstance(spec, str):
-        if spec == "full_and_not_weird":
+        if spec == 'full_and_not_weird':
             tickers = tickers_present_everywhere(data)
             _weird_tickers = weird_tickers(tickers)
             return list(set(tickers) - set(_weird_tickers))
         elif os.path.isfile(spec):
-            if spec.endswith(".json"):
+            if spec.endswith('.json'):
                 with open(spec) as fp:
                     spec = json.load(fp)
                 return spec
         else:
-            raise ValueError(f"Unknown spec: {spec}")
+            raise ValueError(f'Unknown spec: {spec}')
     elif isinstance(spec, int):
         return sample_tickers(data, n_tickers=spec)
     else:
@@ -186,7 +186,7 @@ def slice_data_with_tickers(data: Data, tickers):
 
 std_normalizer = StandardScaler()
 pca_normalizer = Pipeline(
-    steps=[("zscore", StandardScaler()), ("decomposer", PCA(n_components=17))]
+    steps=[('zscore', StandardScaler()), ('decomposer', PCA(n_components=17))]
 )
 
 
@@ -205,11 +205,11 @@ def get_values_and_relations(data: Data, normalizer=None):
 DFLT_ALIGNED_UMAP_KWARGS = dict(
     n_neighbors=5,  # default: 15
     n_components=2,  # 2
-    metric="euclidean",  # 'euclidean'
+    metric='euclidean',  # 'euclidean'
     metric_kwds=None,  # None
     n_epochs=None,  # None
     learning_rate=1.0,  # 1.0
-    init="spectral",  # 'spectral'
+    init='spectral',  # 'spectral'
     alignment_regularisation=0.001,  # 0.01
     alignment_window_size=2,  # 3
     min_dist=0.1,  # 0.1
@@ -225,7 +225,7 @@ DFLT_ALIGNED_UMAP_KWARGS = dict(
     random_state=None,  # None
     angular_rp_forest=False,  # False
     target_n_neighbors=-1,  # -1
-    target_metric="categorical",  # 'categorical'
+    target_metric='categorical',  # 'categorical'
     target_metric_kwds=None,  # None
     target_weight=0.5,  # 0.5
     transform_seed=42,  # 42
@@ -245,7 +245,7 @@ def get_reducer(reducer=None):
         return default_reducer()
 
     if isinstance(reducer, str) and os.path.isfile(reducer):
-        if reducer.endswith(".json"):
+        if reducer.endswith('.json'):
             with open(reducer) as fp:
                 reducer = json.load(fp)
 
@@ -264,7 +264,7 @@ def get_dict_from_json(filepath=DFLT_REDUCER_SPECS):
 
 def get_reducers(reducers=DFLT_REDUCER_SPECS):
     if isinstance(reducers, str):
-        if os.path.isfile(reducers) and reducers.endswith(".json"):
+        if os.path.isfile(reducers) and reducers.endswith('.json'):
             reducers = get_dict_from_json(reducers)
         elif str.isnumeric(reducers):
             reducers = int(reducers)
@@ -287,25 +287,25 @@ def embeddings(
     return fitted.embeddings_
 
 
-DFLT_TICKERS = tuple(get_tickers(data(), spec="full_and_not_weird"))
+DFLT_TICKERS = tuple(get_tickers(data(), spec='full_and_not_weird'))
 
 from wealth.util import print_progress
 
 
-def default_reducer_to_save_name(reducer, ext=".json"):
+def default_reducer_to_save_name(reducer, ext='.json'):
     r = reducer
     return (
-        "reducer_"
-        f"{r.alignment_regularisation=},"
-        f"{r.alignment_window_size=},"
-        f"{r.n_neighbors=},"
-        f"{r.n_components=}" + ext
+        'reducer_'
+        f'{r.alignment_regularisation=},'
+        f'{r.alignment_window_size=},'
+        f'{r.n_neighbors=},'
+        f'{r.n_components=}' + ext
     )
 
 
 def reducer_specs_gen(**kwargs):
     fields = list(kwargs)
-    assert set(fields).issubset(set(DFLT_ALIGNED_UMAP_KWARGS)), "unknown reducer fields"
+    assert set(fields).issubset(set(DFLT_ALIGNED_UMAP_KWARGS)), 'unknown reducer fields'
 
     def normalize_kwargs(kwargs):
         for k, v in kwargs.items():
@@ -334,7 +334,7 @@ def compute_and_save_embeddings_from_multiple_reducers(
     normalizer=None,
     reducers=None,
     reducer_to_save_name=default_reducer_to_save_name,
-    save_dirpath=".",
+    save_dirpath='.',
 ):
     if reducers is None:
         reducers = [default_reducer()]
@@ -357,13 +357,13 @@ def compute_and_save_embeddings_from_multiple_reducers(
     store = QuickJsonStore(save_dirpath)
 
     for i, reducer in enumerate(reducers):
-        print_progress(f"{i}: {reducer}")
+        print_progress(f'{i}: {reducer}')
         name = reducer_to_save_name(reducer)
         _embeddings = embeddings(reducer, _values, _relations)
         store[name] = {
-            "tickers": np.array(list(tickers)).tolist(),
-            "reducer": reducer_jdict(reducer),
-            "embeddings": np.array(_embeddings).tolist(),
+            'tickers': np.array(list(tickers)).tolist(),
+            'reducer': reducer_jdict(reducer),
+            'embeddings': np.array(_embeddings).tolist(),
         }
 
 
@@ -373,7 +373,7 @@ from sklearn.cluster import KMeans
 from lined import Pipe
 
 embedding_movement = Pipe(partial(np.diff, axis=0), np.abs, np.mean)
-embedding_movement.__name__ = "embedding_movement"
+embedding_movement.__name__ = 'embedding_movement'
 
 
 def embedding_clusterness(embeddings, n_clusters=11):
@@ -394,12 +394,12 @@ from graze import graze
 
 StoreOrFuncToGetIt = Union[Mapping, Callable[[], Mapping]]
 dflt_embeddings_store_location = (
-    "https://www.dropbox.com/s/t1lbt21gezxg5ao/embedding_dump.zip?dl=0"
+    'https://www.dropbox.com/s/t1lbt21gezxg5ao/embedding_dump.zip?dl=0'
 )
 
 
 def _is_url(x):
-    return x.startswith("http")
+    return x.startswith('http')
 
 
 def get_embeddings_data_store(store: str = dflt_embeddings_store_location):
@@ -415,15 +415,15 @@ def get_embeddings_data_store(store: str = dflt_embeddings_store_location):
 
         store_wrapper = Pipe(
             filt_iter(
-                filt=lambda x: not x.startswith("__MACOSX")
-                and not x.endswith(".DS_Store")
+                filt=lambda x: not x.startswith('__MACOSX')
+                and not x.endswith('.DS_Store')
             ),
             wrap_kvs(obj_of_data=json.loads),
         )
         store = store_wrapper(store)
 
     assert isinstance(store, Mapping), (
-        f"store should be a mapping at this point: " f"{store}"
+        f'store should be a mapping at this point: ' f'{store}'
     )
 
     return store
@@ -454,19 +454,17 @@ def reducer_and_embedding_stats(
     s = get_embeddings_data_store(embeddings_store)
     for i, k in enumerate(s):
         if verbose:
-            print_progress(f"reducer_and_embedding_stats {i}: {k}")
+            print_progress(f'reducer_and_embedding_stats {i}: {k}')
         try:
             v = s[k]
             yield dict(
-                embedding_stats(v["embeddings"]),
-                key=k,
-                **reducer_stats(v["reducer"]),
+                embedding_stats(v['embeddings']), key=k, **reducer_stats(v['reducer']),
             )
         except Exception as e:
-            print(f"!!! Error with {k}")
+            print(f'!!! Error with {k}')
 
 
-DFLT_EMBEDDING_STATS_JSON_FILEPATH = str(data_dir / "embeddings_stats.json")
+DFLT_EMBEDDING_STATS_JSON_FILEPATH = str(data_dir / 'embeddings_stats.json')
 
 
 def get_saved_embedding_stats(json_filepath=DFLT_EMBEDDING_STATS_JSON_FILEPATH):
@@ -475,7 +473,7 @@ def get_saved_embedding_stats(json_filepath=DFLT_EMBEDDING_STATS_JSON_FILEPATH):
     return d
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from argh import dispatch_command
 
     dispatch_command(compute_and_save_embeddings_from_multiple_reducers)
