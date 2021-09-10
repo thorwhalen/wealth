@@ -72,11 +72,11 @@ jobs:
       - name: Format source code
         run: black  --line-length=88 .
 
-#      - name: Update version number
-#        run: |
-#          export VERSION=$(isee gen-semver)
-#          echo "VERSION=$VERSION" >> $GITHUB_ENV
-#          isee update-setup-cfg
+      - name: Update version number
+        run: |
+          export VERSION=$(isee gen-semver)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          isee update-setup-cfg
 
       - name: Generate Documentation
         run: isee generate-documentation
