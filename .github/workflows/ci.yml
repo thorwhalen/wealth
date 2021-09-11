@@ -74,9 +74,11 @@ jobs:
 
       - name: Update version number
         run: |
-          export VERSION=$(isee gen-semver)
+          export VERSION=0.1.1
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          isee update-setup-cfg
+#           export VERSION=$(isee gen-semver)
+#           echo "VERSION=$VERSION" >> $GITHUB_ENV
+#           isee update-setup-cfg
 
       - name: Generate Documentation
         run: isee generate-documentation
