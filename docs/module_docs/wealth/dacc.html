@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>wealth.dacc &#8212; wealth 0.1.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="wealth.ishares_src" href="ishares_src.html" />
+    <link rel="prev" title="wealth.animation" href="animation.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-wealth.dacc">
+<span id="wealth-dacc"></span><h1>wealth.dacc<a class="headerlink" href="#module-wealth.dacc" title="Permalink to this headline">¶</a></h1>
+<p>Data access</p>
+<dl class="py class">
+<dt id="wealth.dacc.QuarterlyData">
+<em class="property">class </em><code class="sig-prename descclassname">wealth.dacc.</code><code class="sig-name descname">QuarterlyData</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/wealth/dacc.html#QuarterlyData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#wealth.dacc.QuarterlyData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads dataframes of quarterly data</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wealth.dacc</span> <span class="kn">import</span> <span class="n">QuarterlyData</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">QuarterlyData</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="go">44</span>
+</pre></div>
+</div>
+<p>Keys are (year, quarter) pairs:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">[(2010, &#39;Q1&#39;), (2010, &#39;Q2&#39;), (2010, &#39;Q3&#39;)]</span>
+</pre></div>
+</div>
+<p>Values are pandas.DataFrames whose indices are tickers (or groups, or whatever,
+but rows are the items under study) and whose columns represent their features.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2010</span><span class="p">,</span> <span class="s1">&#39;Q1&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">index</span><span class="p">)[:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[&#39;AAP&#39;, &#39;AAPL&#39;, &#39;ABT&#39;, &#39;ACIW&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">columns</span><span class="p">)[:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[&#39;EBITDA&#39;, &#39;Total Debt&#39;, &#39;Free Cash Flow&#39;, &#39;Gross Profit Margin&#39;]</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="wealth.dacc.QuarterlyData.update_keys_cache">
+<code class="sig-name descname">update_keys_cache</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">keys</span></em><span class="sig-paren">)</span><a class="headerlink" href="#wealth.dacc.QuarterlyData.update_keys_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the _keys_cache by deleting the attribute</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">wealth</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../wealth.html">wealth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aligned_umap_analysis.html">wealth.aligned_umap_analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="animation.html">wealth.animation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">wealth.dacc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ishares_src.html">wealth.ishares_src</a></li>
+<li class="toctree-l1"><a class="reference internal" href="util.html">wealth.util</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="animation.html" title="previous chapter">wealth.animation</a></li>
+      <li>Next: <a href="ishares_src.html" title="next chapter">wealth.ishares_src</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;NO COPYRIGHT.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/module_docs/wealth/dacc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

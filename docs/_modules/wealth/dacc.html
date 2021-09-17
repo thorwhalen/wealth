@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wealth.dacc &#8212; wealth 0.1.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for wealth.dacc</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Data access&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">py2store</span> <span class="kn">import</span> <span class="n">FilesOfZip</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">dol</span> <span class="kn">import</span> <span class="n">StrTupleDict</span><span class="p">,</span> <span class="n">wrap_kvs</span><span class="p">,</span> <span class="n">cached_keys</span>
+
+<span class="kn">from</span> <span class="nn">wealth.util</span> <span class="kn">import</span> <span class="n">data_dir</span>
+
+<span class="n">DFLT_QUARTERLY_DATA_SRC</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="s1">&#39;csv_derived.zip&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># TODO: Handle nans differently</span>
+        <span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;period&#39;</span><span class="p">,</span> <span class="s1">&#39;Report Date&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">StrTupleDict</span><span class="p">(</span><span class="s1">&#39;csv_derived/</span><span class="si">{year}</span><span class="s1">-</span><span class="si">{quarter}</span><span class="s1">.csv&#39;</span><span class="p">,</span> <span class="n">process_info_dict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="QuarterlyData"><a class="viewcode-back" href="../../module_docs/wealth/dacc.html#wealth.dacc.QuarterlyData">[docs]</a><span class="nd">@cached_keys</span><span class="p">(</span><span class="n">keys_cache</span><span class="o">=</span><span class="nb">sorted</span><span class="p">)</span>
+<span class="nd">@wrap_kvs</span><span class="p">(</span>
+    <span class="n">key_of_id</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">str_to_tuple</span><span class="p">,</span> <span class="n">id_of_key</span><span class="o">=</span><span class="n">t</span><span class="o">.</span><span class="n">tuple_to_str</span><span class="p">,</span> <span class="n">obj_of_data</span><span class="o">=</span><span class="n">get_data</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">class</span> <span class="nc">QuarterlyData</span><span class="p">(</span><span class="n">FilesOfZip</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reads dataframes of quarterly data</span>
+
+<span class="sd">    &gt;&gt;&gt; from wealth.dacc import QuarterlyData</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; data = QuarterlyData()</span>
+<span class="sd">    &gt;&gt;&gt; len(data)</span>
+<span class="sd">    44</span>
+
+<span class="sd">    Keys are (year, quarter) pairs:</span>
+
+<span class="sd">    &gt;&gt;&gt; list(data)[:3]</span>
+<span class="sd">    [(2010, &#39;Q1&#39;), (2010, &#39;Q2&#39;), (2010, &#39;Q3&#39;)]</span>
+
+<span class="sd">    Values are pandas.DataFrames whose indices are tickers (or groups, or whatever,</span>
+<span class="sd">    but rows are the items under study) and whose columns represent their features.</span>
+
+<span class="sd">    &gt;&gt;&gt; d = data[2010, &#39;Q1&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; assert isinstance(d, pd.DataFrame)</span>
+<span class="sd">    &gt;&gt;&gt; list(d.index)[:4]</span>
+<span class="sd">    [&#39;AAP&#39;, &#39;AAPL&#39;, &#39;ABT&#39;, &#39;ACIW&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; list(d.columns)[:4]</span>
+<span class="sd">    [&#39;EBITDA&#39;, &#39;Total Debt&#39;, &#39;Free Cash Flow&#39;, &#39;Gross Profit Margin&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zip_file</span><span class="o">=</span><span class="n">DFLT_QUARTERLY_DATA_SRC</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">open_kws</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">zip_file</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">open_kws</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">wealth</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth.html">wealth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/aligned_umap_analysis.html">wealth.aligned_umap_analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/animation.html">wealth.animation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/dacc.html">wealth.dacc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/ishares_src.html">wealth.ishares_src</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/util.html">wealth.util</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;NO COPYRIGHT.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wealth.ishares_src &#8212; wealth 0.1.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for wealth.ishares_src</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Getting data from ishares.com&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">wealth.util</span> <span class="kn">import</span> <span class="n">json_store</span>
+
+<span class="n">DFLT_HEADERS_STR</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">-H ‘Accept: application/json, text/javascript, /; q=0.01’ -H ‘Cookie: AllowAnalytics=true; omni_newRepeat=1631073161998-Repeat; at_check=true; mbox=session#8889a7632acd48d4ab7c7afd31aab62e#1631074614; JSESSION_blk-one01=BEDD3BCE752184793FDA163E00C48453.04; ts-us-ishares-locale=en_US; us-ishares-recent-funds=239726’ -H ‘Accept-Language: en-us’ -H ‘Host: www.ishares.com’ -H ‘User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15’ -H ‘Referer: https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf’ -H ‘Accept-Encoding: gzip, deflate, br’ -H ‘Connection: keep-alive’ -H ‘X-Requested-With: XMLHttpRequest’</span>
+<span class="s1">&#39;&#39;&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">curl_headers_string_to_jdict</span><span class="p">(</span><span class="n">headers_string</span><span class="o">=</span><span class="n">DFLT_HEADERS_STR</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">headers_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;‘&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;’&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;: &quot;&#39;</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\s*-H\s*&#39;</span><span class="p">,</span> <span class="s1">&#39;{&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+$&#39;</span><span class="p">,</span> <span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s*-H\s*&#39;</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">headers</span>
+
+
+<span class="k">def</span> <span class="nf">curl_headers_string_to_dict</span><span class="p">(</span><span class="n">headers_string</span><span class="o">=</span><span class="n">DFLT_HEADERS_STR</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">json</span>
+
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">curl_headers_string_to_jdict</span><span class="p">(</span><span class="n">headers_string</span><span class="p">))</span>
+
+
+<span class="n">sp_500_composition_url_template</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s1">&#39;https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf/&#39;</span>
+    <span class="s1">&#39;1467271812596.ajax?tab=all&amp;fileType=json&amp;asOfDate=</span><span class="si">{date}</span><span class="s1">&amp;_=1631072750760&#39;</span>
+<span class="p">)</span>
+
+
+<span class="n">DFLT_HEADERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json, text/javascript, /; q=0.01&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Cookie&#39;</span><span class="p">:</span> <span class="s1">&#39;AllowAnalytics=true; omni_newRepeat=1631073161998-Repeat; at_check=true; mbox=session#8889a7632acd48d4ab7c7afd31aab62e#1631074614; JSESSION_blk-one01=BEDD3BCE752184793FDA163E00C48453.04; ts-us-ishares-locale=en_US; us-ishares-recent-funds=239726&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Accept-Language&#39;</span><span class="p">:</span> <span class="s1">&#39;en-us&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Host&#39;</span><span class="p">:</span> <span class="s1">&#39;www.ishares.com&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;User-Agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Referer&#39;</span><span class="p">:</span> <span class="s1">&#39;https://www.ishares.com/us/products/239726/ishares-core-sp-500-etf&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Accept-Encoding&#39;</span><span class="p">:</span> <span class="s1">&#39;gzip, deflate, br&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Connection&#39;</span><span class="p">:</span> <span class="s1">&#39;keep-alive&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;X-Requested-With&#39;</span><span class="p">:</span> <span class="s1">&#39;XMLHttpRequest&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="n">DFLT_DATE</span> <span class="o">=</span> <span class="mi">2021_08_27</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="n">Date</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">response_for_date</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="n">DFLT_DATE</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="n">headers</span> <span class="ow">or</span> <span class="n">DFLT_HEADERS</span>
+    <span class="kn">import</span> <span class="nn">requests</span>
+
+    <span class="k">return</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">sp_500_composition_url_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="n">date</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">response_to_data</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;aaData&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+
+<span class="k">def</span> <span class="nf">is_valid_response</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">response_to_data</span><span class="p">(</span><span class="n">response</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+
+<span class="k">def</span> <span class="nf">day_of_int_integer</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="n">DFLT_DATE</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">date</span> <span class="o">%</span> <span class="mi">100</span>
+
+
+<span class="k">def</span> <span class="nf">is_yyyymmdd_integer</span><span class="p">(</span><span class="n">date</span><span class="o">=</span><span class="n">DFLT_DATE</span><span class="p">):</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">date</span> <span class="o">&gt;</span> <span class="mi">2000_00_00</span> <span class="ow">and</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">day_of_int_integer</span><span class="p">(</span><span class="n">date</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">31</span>
+
+
+<span class="k">def</span> <span class="nf">get_date</span><span class="p">(</span><span class="n">date</span><span class="p">:</span> <span class="n">Date</span> <span class="o">=</span> <span class="n">DFLT_DATE</span><span class="p">):</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">is_yyyymmdd_integer</span><span class="p">(</span><span class="n">date</span><span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;date not valid: </span><span class="si">{</span><span class="n">date</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">date</span>
+
+
+<span class="k">def</span> <span class="nf">dflt_not_found_callback</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Couldn&#39;t find anything with </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">first_valid_from_date</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="p">:</span> <span class="n">Date</span> <span class="o">=</span> <span class="n">DFLT_DATE</span><span class="p">,</span>
+    <span class="n">include_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">not_found_callback</span><span class="o">=</span><span class="n">dflt_not_found_callback</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">get_date</span><span class="p">(</span><span class="n">start_date</span><span class="p">)</span>
+    <span class="n">max_day</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">day_of_int_integer</span><span class="p">(</span><span class="n">start_date</span><span class="p">),</span> <span class="mi">28</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_day</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">start_date</span> <span class="o">+</span> <span class="n">i</span>
+        <span class="k">assert</span> <span class="n">is_yyyymmdd_integer</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">response_for_date</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_valid_response</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">include_response</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">date</span><span class="p">,</span> <span class="n">r</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">date</span>
+    <span class="k">return</span> <span class="n">not_found_callback</span><span class="p">(</span><span class="n">start_date</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="sorted_union_of_datas"><a class="viewcode-back" href="../../module_docs/wealth/ishares_src.html#wealth.ishares_src.sorted_union_of_datas">[docs]</a><span class="k">def</span> <span class="nf">sorted_union_of_datas</span><span class="p">(</span><span class="o">*</span><span class="n">dicts</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the union of the dicts, sorted (reversed) by keys&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">ChainMap</span>
+
+    <span class="n">data_src</span> <span class="o">=</span> <span class="n">ChainMap</span><span class="p">(</span><span class="o">*</span><span class="n">dicts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">data_src</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data_src</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]}</span></div>
+
+
+<span class="c1"># ---------------------------------------------------------------------------------------</span>
+<span class="c1"># Applying these functions to actually get stuff</span>
+
+<span class="c1"># Raw data ---------------------------------------------------</span>
+<span class="k">def</span> <span class="nf">_default_seed_start_dates</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="n">seed_start_dates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2020_10_01</span><span class="p">,</span> <span class="mi">2020_07_01</span><span class="p">,</span> <span class="mi">2020_04_01</span><span class="p">,</span> <span class="mi">2020_01_01</span><span class="p">,])</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="c1"># seed_start_dates,</span>
+                    <span class="c1"># seed_start_dates - 1_00_00,</span>
+                    <span class="c1"># seed_start_dates - 2_00_00,</span>
+                    <span class="c1"># seed_start_dates - 3_00_00,</span>
+                    <span class="c1"># seed_start_dates - 4_00_00,</span>
+                    <span class="n">seed_start_dates</span> <span class="o">+</span> <span class="mi">1_00_00</span><span class="p">,</span>
+                    <span class="n">seed_start_dates</span> <span class="o">-</span> <span class="mi">5_00_00</span><span class="p">,</span>
+                    <span class="n">seed_start_dates</span> <span class="o">-</span> <span class="mi">6_00_00</span><span class="p">,</span>
+                    <span class="n">seed_start_dates</span> <span class="o">-</span> <span class="mi">7_00_00</span><span class="p">,</span>
+                    <span class="n">seed_start_dates</span> <span class="o">-</span> <span class="mi">8_00_00</span><span class="p">,</span>
+                    <span class="n">seed_start_dates</span> <span class="o">-</span> <span class="mi">9_00_00</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_some_sp500_composition_raw_data</span><span class="p">():</span>
+    <span class="n">start_dates</span> <span class="o">=</span> <span class="n">_default_seed_start_dates</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="n">first_valid_from_date</span><span class="p">,</span> <span class="n">start_dates</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">prep_sp500_composition_raw_data</span><span class="p">(</span><span class="n">raw_data_iterator</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">date</span><span class="p">:</span> <span class="n">response_to_data</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">date</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_data_iterator</span><span class="p">)}</span>
+
+
+<span class="k">def</span> <span class="nf">get_some_sp500_composition_data</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">prep_sp500_composition_raw_data</span><span class="p">(</span><span class="n">_get_some_sp500_composition_raw_data</span><span class="p">())</span>
+
+
+<span class="k">def</span> <span class="nf">data_getter</span><span class="p">(</span>
+    <span class="n">key</span><span class="o">=</span><span class="s1">&#39;sp500_compositions.json&#39;</span><span class="p">,</span>
+    <span class="n">data_getter</span><span class="o">=</span><span class="n">get_some_sp500_composition_data</span><span class="p">,</span>
+    <span class="n">json_store</span><span class="o">=</span><span class="n">json_store</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">json_store</span><span class="p">:</span>
+        <span class="n">json_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_getter</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">json_store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="n">get_raw_sp500_compositions</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+    <span class="n">data_getter</span><span class="p">,</span>
+    <span class="n">key</span><span class="o">=</span><span class="s1">&#39;sp500_compositions.json&#39;</span><span class="p">,</span>
+    <span class="n">data_getter</span><span class="o">=</span><span class="n">get_some_sp500_composition_data</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="c1"># Data prep ---------------------------------------------------</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">methodcaller</span>
+<span class="kn">from</span> <span class="nn">lined</span> <span class="kn">import</span> <span class="n">Pipe</span><span class="p">,</span> <span class="n">map_star</span><span class="p">,</span> <span class="n">iterize</span>
+
+<span class="n">item_2_kvs</span> <span class="o">=</span> <span class="n">Pipe</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="p">([</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">map_star</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">item_2_kvs</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]]))</span> <span class="o">==</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)]</span>
+
+<span class="n">data_2_kvs</span> <span class="o">=</span> <span class="n">Pipe</span><span class="p">(</span>
+    <span class="n">methodcaller</span><span class="p">(</span><span class="s1">&#39;items&#39;</span><span class="p">),</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">iterize</span><span class="p">(</span><span class="n">item_2_kvs</span><span class="p">),</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">kv_to_data_dict</span><span class="p">(</span><span class="n">kv</span><span class="p">):</span>
+    <span class="n">date</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">kv</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">date</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="p">),</span>
+        <span class="n">ticker</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># AAPL</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># APPLE INC</span>
+        <span class="n">sector</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>  <span class="c1"># Information Technology</span>
+        <span class="n">asset_class</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>  <span class="c1"># Equity</span>
+        <span class="n">market_value</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span>
+            <span class="s1">&#39;raw&#39;</span>
+        <span class="p">],</span>  <span class="c1"># {&#39;display&#39;: &#39;$16,943,729,311.11&#39;, &#39;raw&#39;: 16943729311.11}</span>
+        <span class="n">weight_perc</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="s1">&#39;raw&#39;</span><span class="p">],</span>  <span class="c1"># {&#39;display&#39;: &#39;5.88&#39;, &#39;raw&#39;: 5.88254}</span>
+        <span class="n">notational_value</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span>
+            <span class="s1">&#39;raw&#39;</span>
+        <span class="p">],</span>  <span class="c1"># {&#39;display&#39;: &#39;16,943,729,311.11&#39;, &#39;raw&#39;: 16943729311.11}</span>
+        <span class="n">shares</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">7</span><span class="p">][</span><span class="s1">&#39;raw&#39;</span><span class="p">],</span>  <span class="c1"># {&#39;display&#39;: &#39;123,433,593.00&#39;, &#39;raw&#39;: 123433593}</span>
+        <span class="n">cusip</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">8</span><span class="p">],</span>  <span class="c1"># 037833100</span>
+        <span class="n">isin</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span>  <span class="c1"># US0378331005</span>
+        <span class="n">sedol</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">10</span><span class="p">],</span>  <span class="c1"># 2046251</span>
+        <span class="n">some_num_1</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">11</span><span class="p">][</span><span class="s1">&#39;raw&#39;</span><span class="p">],</span>  <span class="c1"># {&#39;display&#39;: &#39;137.27&#39;, &#39;raw&#39;: 137.27}</span>
+        <span class="n">country</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">12</span><span class="p">],</span>  <span class="c1"># United States</span>
+        <span class="n">market_group</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">13</span><span class="p">],</span>  <span class="c1"># NASDAQ</span>
+        <span class="n">currency_1</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">14</span><span class="p">],</span>  <span class="c1"># USD</span>
+        <span class="n">some_num_2</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">15</span><span class="p">],</span>  <span class="c1"># 1.00</span>
+        <span class="n">currency_2</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">16</span><span class="p">],</span>  <span class="c1"># USD</span>
+        <span class="n">no_clue</span><span class="o">=</span><span class="n">vals</span><span class="p">[</span><span class="mi">17</span><span class="p">],</span>  <span class="c1"># -</span>
+    <span class="p">)</span>
+
+
+<span class="n">get_flattened_sp500_compositions</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+    <span class="n">data_getter</span><span class="p">,</span>
+    <span class="n">key</span><span class="o">=</span><span class="s1">&#39;flattened_sp500_compositions.json&#39;</span><span class="p">,</span>
+    <span class="n">data_getter</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span><span class="n">kv_to_data_dict</span><span class="p">,</span> <span class="n">data_2_kvs</span><span class="p">(</span><span class="n">get_raw_sp500_compositions</span><span class="p">()))</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">get_df_for_sp500_compositions</span><span class="p">():</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">get_flattened_sp500_compositions</span><span class="p">())</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;ticker&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">double_plot</span><span class="p">(</span>
+    <span class="n">ticker</span><span class="p">,</span>
+    <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">y1</span><span class="o">=</span><span class="s1">&#39;market_value&#39;</span><span class="p">,</span>
+    <span class="n">y2</span><span class="o">=</span><span class="s1">&#39;weight_perc&#39;</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="n">style</span><span class="o">=</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">get_df_for_sp500_compositions</span><span class="p">()</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">ticker</span> <span class="o">==</span> <span class="n">ticker</span><span class="p">][[</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">]]</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;market_value&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;weight_perc&#39;</span><span class="p">,</span> <span class="n">secondary_y</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">ticker</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">wealth</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth.html">wealth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/aligned_umap_analysis.html">wealth.aligned_umap_analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/animation.html">wealth.animation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/dacc.html">wealth.dacc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/ishares_src.html">wealth.ishares_src</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/wealth/util.html">wealth.util</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;NO COPYRIGHT.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
