@@ -226,6 +226,7 @@ def slice_data_with_tickers(data: Data, tickers):
         for d in data:
             _tickers = [ticker for ticker in tickers if ticker in d.index.values]
             yield d.loc[_tickers]
+
     return list(gen())
 
 
