@@ -249,3 +249,14 @@ def double_plot(
     ax = d.plot('date', 'market_value', figsize=figsize, style=style, **plot_kwargs)
     d.plot('date', 'weight_perc', secondary_y=True, ax=ax, style=style, **plot_kwargs)
     plt.title(ticker)
+
+
+def stackedplot(
+    df,
+    value_col='weight_perc',
+    date_col='date',
+    figsize=(16, 6),
+    style='-o',
+    **plot_kwargs,
+):
+    pass

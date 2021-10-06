@@ -1,8 +1,42 @@
-"""Aligned UMAP analysis"""
+"""Aligned UMAP analysis
+
+Examples
+
+```python
+compute_and_save_embeddings_from_multiple_reducers(
+    # specify tickers: 'all' or 'full_and_not_weird' (default),
+    # or a number (of sampled tickers),
+    # or explicit list or json filepath to the list
+    tickers='all',
+    # specify reducer specs
+    reducers=[
+        {
+            "alignment_regularisation": 0.002,
+            "alignment_window_size": 2,
+            "n_neighbors": 5,
+            "n_components": 2
+        },
+        {
+            "alignment_regularisation": 0.002,
+            "alignment_window_size": 2,
+            "n_neighbors": 5,
+            "n_components": 3
+        },
+    ],
+)
+```
+
+From the command line:
+```
+python aligned_umap_analysis --tickers all
+```
+
+
+"""
 
 import os
 from collections import Counter
-from typing import Callable, Union, Iterable, List, Dict
+from typing import Callable, Union, Iterable, List, Dict, NewType, Optional
 import json
 import itertools
 
@@ -28,12 +62,16 @@ from wealth.util import data_dir
 
 DFLT_REDUCER_SPECS = str(data_dir / 'reducer_specs.json')
 
-RawData = List[List[pd.DataFrame]]
-RawDataGetter = Callable[[], RawData]
-Data = List[pd.DataFrame]
-Values = List[np.ndarray]
-Relation = Dict[int, int]
-Relations = List[Relation]
+RawData = NewType('RawData', List[List[pd.DataFrame]])
+RawDataGetter = NewType('RawDataGetter', Callable[[], RawData])
+Data = NewType('Data', List[pd.DataFrame])
+Values = NewType('Values', List[np.ndarray])
+Relation = NewType('Relation', Dict[int, int])
+Relations = NewType('Relations', List[Relation])
+TickerSpec = NewType('TickerSpec', Union[str, int, Iterable])
+ReducerSpec = NewType(
+    'ReducerSpec', Union[str, int, dict, umap.aligned_umap.AlignedUMAP]
+)
 
 # DFLT_ROOTDIR = "./csv_derived"
 
@@ -101,7 +139,7 @@ def ticker_counter(data: Data):
 
 
 def get_all_tickers(data: Data):
-    return sorted(ticker_counter(data))
+    return ticker_counter(data).index.values
 
 
 def weird_tickers(tickers):
@@ -158,15 +196,18 @@ def sample_data(
     return [d.loc[_available_tickers(d, tickers)] for d in data]
 
 
-# Pattern: meshed
-def get_tickers(data: Data, spec='full_and_not_weird'):
-    if isinstance(spec, str) and str.isnumeric(spec):
+# Pattern: meshed-postel
+def get_tickers(data: Data, spec: TickerSpec = 'full_and_not_weird'):
+    if isinstance(spec, str) and str.isnumeric(spec):  # TODO: cli concern
         spec = int(spec)
     if isinstance(spec, str):
         if spec == 'full_and_not_weird':
             tickers = tickers_present_everywhere(data)
             _weird_tickers = weird_tickers(tickers)
-            return list(set(tickers) - set(_weird_tickers))
+            return sorted(set(tickers) - set(_weird_tickers))
+        elif spec == 'all_not_weird' or spec == 'all':
+            tickers = set(get_all_tickers(data))
+            return sorted(tickers - set(weird_tickers(tickers)))
         elif os.path.isfile(spec):
             if spec.endswith('.json'):
                 with open(spec) as fp:
@@ -181,7 +222,11 @@ def get_tickers(data: Data, spec='full_and_not_weird'):
 
 
 def slice_data_with_tickers(data: Data, tickers):
-    return [d.loc[np.array(tickers)] for d in data]
+    def gen():
+        for d in data:
+            _tickers = [ticker for ticker in tickers if ticker in d.index.values]
+            yield d.loc[_tickers]
+    return list(gen())
 
 
 std_normalizer = StandardScaler()
@@ -239,8 +284,8 @@ def default_reducer():
     return umap.aligned_umap.AlignedUMAP(**DFLT_ALIGNED_UMAP_KWARGS)
 
 
-# Pattern: meshed
-def get_reducer(reducer=None):
+# Pattern: meshed-postel
+def get_reducer(reducer: Optional[ReducerSpec] = None):
     if reducer is None:
         return default_reducer()
 
@@ -330,19 +375,33 @@ def reducer_jdict(reducer):
 
 def compute_and_save_embeddings_from_multiple_reducers(
     data: Data = None,
-    tickers=DFLT_TICKERS,
+    tickers: TickerSpec = DFLT_TICKERS,
     normalizer=None,
     reducers=None,
     reducer_to_save_name=default_reducer_to_save_name,
     save_dirpath='.',
 ):
+    """Compute one or several embeddings for the given data (and specific tickers)
+
+    :param data: list of dataframes with ticker indices.
+        Note specifying it will result in getting this from data/csv_derived.zip
+    :param tickers: iterable of tickers,
+        or string of json file to get these,
+        or string specifying how to computer these from data
+    :param normalizer: sklearn transformer (has `.fit` & `.transform`) to preprocess
+        values (example; std_normalizer (= StandardScaler()), or pca_normalizer
+    :param reducers: An AlignedUMAP instance or specification (ReducerSpec) to get one.
+    :param reducer_to_save_name: How to compute a save name/key from a reducer instance
+    :param save_dirpath: What directory to save the data into
+    :return:
+    """
     if reducers is None:
         reducers = [default_reducer()]
     if data is None:
         data = _get_data()
     tickers = get_tickers(data, tickers)
 
-    reducers = list(get_reducers(reducers))[::-1]
+    reducers = list(get_reducers(reducers))  # [::-1]
 
     _data = slice_data_with_tickers(data, tickers)
     _values = values(_data, normalizer)
