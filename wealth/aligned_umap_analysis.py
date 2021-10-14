@@ -426,6 +426,7 @@ def compute_and_save_embeddings_from_multiple_reducers(
             'embeddings': [np.array(x).tolist() for x in _embeddings],
         }
 
+
 from functools import partial
 from sklearn.cluster import KMeans
 
