@@ -423,9 +423,8 @@ def compute_and_save_embeddings_from_multiple_reducers(
         store[name] = {
             'tickers': np.array(list(tickers)).tolist(),
             'reducer': reducer_jdict(reducer),
-            'embeddings': np.array(_embeddings).tolist(),
+            'embeddings': [np.array(x).tolist() for x in _embeddings],
         }
-
 
 from functools import partial
 from sklearn.cluster import KMeans
