@@ -1,6 +1,7 @@
 """Getting animations of multi-dimensional timeseries data"""
 
-from typing import Callable, Union, Iterable
+from typing import Union
+from collections.abc import Callable, Iterable
 
 import numpy as np
 from scipy import interpolate
@@ -78,7 +79,7 @@ def xys_to_swarm_animation(
     figsize=(9, 9),
     marker='.',
     marker_size=None,
-    color: Union[str, Callable, Iterable] = get_colors_for_xys,
+    color: str | Callable | Iterable = get_colors_for_xys,
 ):
     """Make a swarm animation from a sequence of xy matrices"""
     xys = np.array(xys)

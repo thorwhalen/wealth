@@ -36,7 +36,8 @@ python aligned_umap_analysis --tickers all
 
 import os
 from collections import Counter
-from typing import Callable, Union, Iterable, List, Dict, NewType, Optional
+from typing import Union, List, Dict, NewType, Optional
+from collections.abc import Callable, Iterable
 import json
 import itertools
 
@@ -62,12 +63,12 @@ from wealth.util import data_dir
 
 DFLT_REDUCER_SPECS = str(data_dir / 'reducer_specs.json')
 
-RawData = NewType('RawData', List[List[pd.DataFrame]])
+RawData = NewType('RawData', list[list[pd.DataFrame]])
 RawDataGetter = NewType('RawDataGetter', Callable[[], RawData])
-Data = NewType('Data', List[pd.DataFrame])
-Values = NewType('Values', List[np.ndarray])
-Relation = NewType('Relation', Dict[int, int])
-Relations = NewType('Relations', List[Relation])
+Data = NewType('Data', list[pd.DataFrame])
+Values = NewType('Values', list[np.ndarray])
+Relation = NewType('Relation', dict[int, int])
+Relations = NewType('Relations', list[Relation])
 TickerSpec = NewType('TickerSpec', Union[str, int, Iterable])
 ReducerSpec = NewType(
     'ReducerSpec', Union[str, int, dict, umap.aligned_umap.AlignedUMAP]
@@ -180,7 +181,7 @@ def _available_tickers(d, tickers):
 
 def sample_data(
     data: Data,
-    tickers: Union[int, List[str]] = 50,
+    tickers: int | list[str] = 50,
     ticker_choice_col: str = 'EBITDA',
     sort_ascending: bool = False,
     only_tickers_present_everywhere: bool = True,
@@ -286,7 +287,7 @@ def default_reducer():
 
 
 # Pattern: meshed-postel
-def get_reducer(reducer: Optional[ReducerSpec] = None):
+def get_reducer(reducer: ReducerSpec | None = None):
     if reducer is None:
         return default_reducer()
 
@@ -447,7 +448,7 @@ def embedding_clusterness(embeddings, n_clusters=11):
 
 from functools import partial
 import json
-from typing import Mapping
+from collections.abc import Mapping
 from py2store import FilesOfZip, wrap_kvs, filt_iter, QuickJsonStore
 from graze import graze
 

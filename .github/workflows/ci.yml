@@ -80,8 +80,6 @@ jobs:
 #          export VERSION=0.1.1
 #          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Generate Documentation
-        run: isee generate-documentation
 
       - name: Package
         run: python setup.py sdist
