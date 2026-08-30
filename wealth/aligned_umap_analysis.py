@@ -532,9 +532,3 @@ def get_saved_embedding_stats(json_filepath=DFLT_EMBEDDING_STATS_JSON_FILEPATH):
     with open(json_filepath) as fp:
         d = json.load(fp)
     return d
-
-
-if __name__ == '__main__':
-    from argh import dispatch_command
-
-    dispatch_command(compute_and_save_embeddings_from_multiple_reducers)
