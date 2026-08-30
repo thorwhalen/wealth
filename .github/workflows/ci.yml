@@ -66,7 +66,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip -q install axblack twine wads isee
+          pip -q install axblack twine wads isee epythet
           isee install-requires
 
       - name: Format source code
@@ -84,10 +84,21 @@ jobs:
       - name: Package
         run: python setup.py sdist
 
+      # PyPI stopped accepting username/password uploads; the only accepted
+      # credential is an API token, sent as user `__token__` with the token
+      # itself as the password. The literal `__token__` is not a secret and is
+      # the same for every project, so PYPI_USERNAME is no longer read here.
+      # PYPI_PASSWORD must hold a PyPI API token (`pypi-...`), not a password.
       - name: Publish
         run: |
-         twine upload dist/$PROJECT_NAME-$VERSION.tar.gz -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} --non-interactive  --skip-existing --disable-progress-bar
-         epythet make . github
+         twine upload dist/$PROJECT_NAME-$VERSION.tar.gz -u __token__ -p ${{ secrets.PYPI_PASSWORD }} --non-interactive  --skip-existing --disable-progress-bar
+
+      # Docs are not a release gate: a docs build failure must not leave a
+      # version published on PyPI but untagged and uncommitted here, which is
+      # what happens when this shares a step with the upload above.
+      - name: Build and publish docs
+        continue-on-error: true
+        run: epythet make . github
 
       - name: Push Changes
         run: pack check-in "**CI** Formatted code + Updated version number and documentation. [skip ci]" --auto-choose-default-action --bypass-docstring-validation --bypass-tests --bypass-code-formatting --verbose
