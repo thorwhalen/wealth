@@ -479,7 +479,7 @@ def get_embeddings_data_store(store: str = dflt_embeddings_store_location):
                 filt=lambda x: not x.startswith('__MACOSX')
                 and not x.endswith('.DS_Store')
             ),
-            wrap_kvs(obj_of_data=json.loads),
+            wrap_kvs(value_decoder=json.loads),
         )
         store = store_wrapper(store)
 
