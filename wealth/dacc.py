@@ -26,7 +26,7 @@ t = StrTupleDict('csv_derived/{year}-{quarter}.csv', process_info_dict={'year': 
 
 @cached_keys(keys_cache=sorted)
 @wrap_kvs(
-    key_of_id=t.str_to_tuple, id_of_key=t.tuple_to_str, obj_of_data=get_data,
+    key_decoder=t.str_to_tuple, key_encoder=t.tuple_to_str, value_decoder=get_data,
 )
 class QuarterlyData(FilesOfZip):
     """Reads dataframes of quarterly data
