@@ -1,4 +1,0 @@
-wealth
-======
-.. automodule:: wealth
-   :members:
