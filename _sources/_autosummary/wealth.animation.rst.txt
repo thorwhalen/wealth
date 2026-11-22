@@ -1,0 +1,15 @@
+wealth.animation
+================
+
+.. automodule:: wealth.animation
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_colors_for_xys
+      interpolated_xys
+      remove_ticks
+      xys_to_swarm_animation
+   

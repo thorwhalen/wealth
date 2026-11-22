@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "built_at": "2026-11-22T20:00:08Z",
+  "package": {
+    "name": "wealth",
+    "version": "0.1.6",
+    "display_name": "wealth",
+    "source": "pyproject.toml"
+  },
+  "git": {
+    "available": true,
+    "commit": "0fbbae16c7106ba44cdba45ef7e14ec08cde9b9f",
+    "short_commit": "0fbbae1",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "remote_url": "https://github.com/thorwhalen/wealth",
+    "commit_url": "https://github.com/thorwhalen/wealth/commit/0fbbae16c7106ba44cdba45ef7e14ec08cde9b9f",
+    "error": null
+  },
+  "ci": {
+    "provider": "github",
+    "repository": "thorwhalen/wealth",
+    "sha": "0fbbae16c7106ba44cdba45ef7e14ec08cde9b9f",
+    "sha_in_history": true,
+    "ref": "refs/heads/master",
+    "ref_name": "master",
+    "run_id": "45063631213",
+    "run_url": "https://github.com/thorwhalen/wealth/actions/runs/45063631213",
+    "server_url": "https://github.com"
+  },
+  "tools": {
+    "epythet": "0.2.23",
+    "sphinx": "9.1.1",
+    "docutils": "0.22.4",
+    "python": "3.12.16"
+  },
+  "config": {
+    "theme": "auto",
+    "html_theme": "furo",
+    "accent": "#006b2f",
+    "mode": "auto",
+    "api_generator": "autosummary",
+    "ignore": [
+      "tests/",
+      "scrap/",
+      "examples/"
+    ],
+    "agent_outputs": true,
+    "aggregates": [
+      "md"
+    ],
+    "ai_artifacts": true,
+    "provenance": true,
+    "docs_dir": "docsrc"
+  },
+  "site": {
+    "modules_documented": 6,
+    "objects_documented": 8
+  },
+  "pypi": {
+    "checked": true,
+    "latest": "0.1.6",
+    "relation": "same",
+    "error": null
+  },
+  "reproduce": "git clone https://github.com/thorwhalen/wealth && cd wealth\ngit checkout 0fbbae16c7106ba44cdba45ef7e14ec08cde9b9f\npip install \"epythet==0.2.23\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "warnings": [],
+  "alignment": {
+    "aligned": true,
+    "notes": []
+  }
+}

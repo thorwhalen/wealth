@@ -1,0 +1,18 @@
+wealth.dacc
+===========
+
+.. automodule:: wealth.dacc
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_data
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      QuarterlyData
+   

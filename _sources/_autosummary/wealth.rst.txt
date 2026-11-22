@@ -1,0 +1,17 @@
+﻿wealth
+======
+
+.. automodule:: wealth
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   aligned_umap_analysis
+   animation
+   dacc
+   ishares_src
+   util

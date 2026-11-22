@@ -1,0 +1,17 @@
+# wealth
+
+> Visualizing financial relations and evolutions
+
+
+## Pages in this subsection
+
+- [wealth](wealth.html.md): Visualizing financial relations and evolutions
+- [wealth.aligned_umap_analysis](wealth.aligned_umap_analysis.html.md): Aligned UMAP analysis
+- [wealth.animation](wealth.animation.html.md): Getting animations of multi-dimensional timeseries data
+- [wealth.dacc](wealth.dacc.html.md): Data access
+- [wealth.ishares_src](wealth.ishares_src.html.md): Getting data from ishares.com
+- [wealth.util](wealth.util.html.md): | &#96;hms_message&#96;(&#91;msg&#93;)                                                                          |   ...
+
+## Optional
+
+- [Top-level llms.txt](../llms.txt): Complete documentation index.

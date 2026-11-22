@@ -1,0 +1,29 @@
+wealth.ishares\_src
+===================
+
+.. automodule:: wealth.ishares_src
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      curl_headers_string_to_dict
+      curl_headers_string_to_jdict
+      data_getter
+      day_of_int_integer
+      dflt_not_found_callback
+      double_plot
+      first_valid_from_date
+      get_date
+      get_df_for_sp500_compositions
+      get_some_sp500_composition_data
+      is_valid_response
+      is_yyyymmdd_integer
+      kv_to_data_dict
+      prep_sp500_composition_raw_data
+      response_for_date
+      response_to_data
+      sorted_union_of_datas
+      stackedplot
+   

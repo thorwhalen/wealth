@@ -1,0 +1,41 @@
+wealth.aligned\_umap\_analysis
+==============================
+
+.. automodule:: wealth.aligned_umap_analysis
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      assert_all_data_dfs_have_same_columns
+      assert_relations
+      compute_and_save_embeddings_from_multiple_reducers
+      compute_embedding_stats
+      data
+      default_reducer
+      default_reducer_to_save_name
+      embedding_clusterness
+      embedding_stats
+      embeddings
+      get_all_tickers
+      get_dict_from_json
+      get_embeddings_data_store
+      get_reducer
+      get_reducers
+      get_saved_embedding_stats
+      get_tickers
+      get_values_and_relations
+      reducer_and_embedding_stats
+      reducer_jdict
+      reducer_specs_gen
+      relations
+      relations_for_dfs
+      sample_data
+      sample_tickers
+      slice_data_with_tickers
+      ticker_counter
+      tickers_present_everywhere
+      values
+      weird_tickers
+   
